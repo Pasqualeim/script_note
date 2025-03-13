@@ -5,6 +5,15 @@ import re
 import tkinter as tk
 from tkinter import filedialog
 
+def select_file(prompt):
+    """
+    Mostra una finestra di dialogo per selezionare un file e restituisce il percorso.
+    """
+    root = tk.Tk()
+    root.withdraw()
+    file_path = filedialog.askopenfilename(title=prompt, filetypes=[("Excel files", "*.xlsx")])
+    return file_path
+
 def select_save_location(default_name):
     """
     Mostra una finestra di dialogo per selezionare la posizione di salvataggio del file.
@@ -58,11 +67,11 @@ def check_release_and_patch(component_row, note_row):
     
     return False
 
-def apply_color_to_note_number(components_df, notes_df):
+def apply_color_to_note_number(components_df, notes_df, notes_file):
     output_filename = select_save_location("Note Extraction_Updated.xlsx")
     red_notes_filename = select_save_location("Impacted_Notes.xlsx")
     
-    wb = load_workbook("Note Extraction.xlsx")
+    wb = load_workbook(notes_file)
     ws = wb.active  
     
     wb_red_notes = Workbook()
@@ -117,6 +126,8 @@ def apply_color_to_note_number(components_df, notes_df):
     wb_red_notes.save(red_notes_filename)
     print(f"✅ Salvataggio completato: {output_filename} e {red_notes_filename}")
 
-components_df = pd.read_excel("Components.xlsx")
-notes_df = pd.read_excel("Note Extraction.xlsx")
-apply_color_to_note_number(components_df, notes_df)
+components_file = filedialog.askopenfilename(title="Seleziona il file Components.xlsx", filetypes=[("Excel files", "*.xlsx")])
+components_df = pd.read_excel(components_file)
+notes_file = filedialog.askopenfilename(title="Seleziona il file Note Extraction.xlsx", filetypes=[("Excel files", "*.xlsx")])
+notes_df = pd.read_excel(notes_file)
+apply_color_to_note_number(components_df, notes_df, notes_file)
