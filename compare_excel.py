@@ -2,6 +2,22 @@ import pandas as pd
 from openpyxl import load_workbook, Workbook
 from openpyxl.styles import PatternFill
 import re
+import tkinter as tk
+from tkinter import filedialog
+
+def select_save_location(default_name):
+    """
+    Mostra una finestra di dialogo per selezionare la posizione di salvataggio del file.
+    """
+    root = tk.Tk()
+    root.withdraw()
+    file_path = filedialog.asksaveasfilename(
+        title="Seleziona dove salvare il file",
+        initialfile=default_name,
+        defaultextension=".xlsx",
+        filetypes=[("Excel files", "*.xlsx")]
+    )
+    return file_path
 
 def convert_version_format(version):
     """
@@ -20,15 +36,10 @@ def extract_sp_level(sp_value):
         return int(sp_value) if pd.notna(sp_value) else None
     except ValueError:
         return None
-    
-    match = re.search(r"SP(\d+)", str(sp_value))
-    if match:
-        return int(match.group(1))
-    return None
 
 def check_release_and_patch(component_row, note_row):
     component = str(component_row['Component']).strip()
-    release = component_row['Release']  # Manteniamo il formato originale
+    release = component_row['Release']
     software_component = str(note_row['Software Component']).strip().lower() if pd.notna(note_row['Software Component']) else ""
     
     if component.lower() not in software_component.split(","):
@@ -47,15 +58,17 @@ def check_release_and_patch(component_row, note_row):
     
     return False
 
-def apply_color_to_note_number(components_df, notes_df, output_filename="Note Extraction_Updated.xlsx", red_notes_filename="Impacted_Notes.xlsx"):
+def apply_color_to_note_number(components_df, notes_df):
+    output_filename = select_save_location("Note Extraction_Updated.xlsx")
+    red_notes_filename = select_save_location("Impacted_Notes.xlsx")
+    
     wb = load_workbook("Note Extraction.xlsx")
     ws = wb.active  
     
-    # Creazione di un nuovo file Excel per le sole note impattate
     wb_red_notes = Workbook()
     ws_red_notes = wb_red_notes.active
-    ws_red_notes.append(["Note Number", "Impacted Component", "From", "To", "Patch Level", "SPLevel"])  # Aggiunta delle intestazioni con i dati richiesti
-
+    ws_red_notes.append(["Note Number", "Impacted Component", "From", "To", "Patch Level", "SPLevel"])
+    
     red_fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
     
     for index, note_row in notes_df.iterrows():
@@ -71,11 +84,11 @@ def apply_color_to_note_number(components_df, notes_df, output_filename="Note Ex
                 print(f"📌 Controllo componente: {component_row['Component']} | SPLevel: {sp_level}")
                 
                 if patch_level is None:
-                    found = True  # Se non c'è Patch Level, la componente è impattata
+                    found = True
                     impacted_components.append(component_row['Component'])
                     sp_level_component = sp_level
                 elif sp_level is not None and patch_level > sp_level:
-                    found = True  # Se Patch Level è maggiore di SPLevel, impattata
+                    found = True
                     impacted_components.append(component_row['Component'])
                     sp_level_component = sp_level
         
@@ -91,14 +104,13 @@ def apply_color_to_note_number(components_df, notes_df, output_filename="Note Ex
             note_cell.fill = red_fill
             print(f"🔴 Impattato: {note_cell.coordinate} colorato di rosso")
             
-            # Aggiunta della riga con i dati richiesti nel file delle note impattate
             ws_red_notes.append([
-                note_cell.value,  # Numero della nota dalla colonna Note Number
-                ", ".join(impacted_components),  # Lista delle componenti impattate
-                note_row['From'],  # Versione FROM
-                note_row['To'],  # Versione TO
-                patch_level if 'Patch Level' in notes_df.columns else None,  # Patch Level, se presente
-                sp_level_component  # SPLevel della componente impattata
+                note_cell.value,
+                ", ".join(impacted_components),
+                note_row['From'],
+                note_row['To'],
+                patch_level if 'Patch Level' in notes_df.columns else None,
+                sp_level_component
             ])
     
     wb.save(output_filename)
