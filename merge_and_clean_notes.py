@@ -1,142 +1,153 @@
-import os
 import pandas as pd
 from openpyxl import load_workbook, Workbook
 from openpyxl.styles import PatternFill
+import re
+import tkinter as tk
+from tkinter import filedialog
 
-# === Sezione 1: Confronto e Colorazione delle Note Impattate ===
-def apply_color_to_note_number(components_df, notes_df, output_filename="Note Extraction_Updated.xlsx", red_notes_filename="Impacted_Notes.xlsx"):
-    if not os.path.exists("Note Extraction.xlsx"):
-        print("❌ Errore: Il file Note Extraction.xlsx non esiste.")
-        return
+def select_file(prompt):
+    """
+    Mostra una finestra di dialogo per selezionare un file e restituisce il percorso.
+    """
+    root = tk.Tk()
+    root.withdraw()
+    file_path = filedialog.askopenfilename(title=prompt, filetypes=[("Excel files", "*.xlsx")])
+    return file_path
 
-    wb = load_workbook("Note Extraction.xlsx")
+def select_save_location(default_name):
+    """
+    Mostra una finestra di dialogo per selezionare la posizione di salvataggio del file.
+    """
+    root = tk.Tk()
+    root.withdraw()
+    file_path = filedialog.asksaveasfilename(
+        title="Seleziona dove salvare il file",
+        initialfile=default_name,
+        defaultextension=".xlsx",
+        filetypes=[("Excel files", "*.xlsx")]
+    )
+    return file_path
+
+def convert_version_format(version):
+    """
+    Converte una versione con punto (es. 7.22) in un numero intero (es. 722) per l'analisi.
+    """
+    try:
+        return int(str(version).replace(".", "")) if pd.notna(version) else None
+    except ValueError:
+        return None
+
+def extract_sp_level(sp_value):
+    """
+    Legge il valore numerico di SPLevel direttamente senza regex, poiché il formato è numerico.
+    """
+    try:
+        return int(sp_value) if pd.notna(sp_value) else None
+    except ValueError:
+        return None
+
+def check_release_and_patch(component_row, note_row):
+    component = str(component_row['Component']).strip()
+    release = component_row['Release']
+    software_component = str(note_row['Software Component']).strip().lower() if pd.notna(note_row['Software Component']) else ""
+    
+    if component.lower() not in software_component.split(","):
+        return False
+    
+    try:
+        from_version = convert_version_format(note_row['From'])
+        to_version = convert_version_format(note_row['To'])
+        release_version = convert_version_format(release) if pd.notna(release) else None
+        
+        if from_version is not None and to_version is not None and release_version is not None:
+            if from_version <= release_version <= to_version:
+                return True
+    except ValueError:
+        return False
+    
+    return False
+
+def clean_impacted_notes(ws_red_notes):
+        """
+        Pulisce la colonna 'Note Number' rimuovendo i valori duplicati consecutivi.
+        """
+        note_number_col = None
+        for col in range(1, ws_red_notes.max_column + 1):
+            if ws_red_notes.cell(row=1, column=col).value == "Note Number":
+                note_number_col = col
+                break
+        if note_number_col:
+            previous_note = None
+            for row in range(2, ws_red_notes.max_row + 1):  # Evita l'intestazione
+                current_note = ws_red_notes.cell(row=row, column=note_number_col).value
+                if current_note == previous_note:
+                    ws_red_notes.cell(row=row, column=note_number_col, value="")
+                else:
+                    previous_note = current_note
+
+def apply_color_to_note_number(components_df, notes_df, notes_file):
+    
+    output_filename = select_save_location("Note Extraction_Updated.xlsx")
+    red_notes_filename = select_save_location("Impacted_Notes.xlsx")
+    
+    wb = load_workbook(notes_file)
     ws = wb.active  
-
-    # Creazione di un nuovo file Excel per le sole note impattate
+    
     wb_red_notes = Workbook()
     ws_red_notes = wb_red_notes.active
-    ws_red_notes.append(["Note Number", "Impacted Component", "Software Component", "From", "To", "Patch Level (Note Extraction)", "SPLevel (Component)"])
-
+    ws_red_notes.append(["Note Number", "Impacted Component", "From", "To", "Patch Level", "SPLevel"])
+    
     red_fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
-
+    
     for index, note_row in notes_df.iterrows():
         found = False
         impacted_components = []
-        software_component = note_row.get('Software Component', None)
-        patch_level_note = note_row.get('Patch Level', None)
+        patch_level = extract_sp_level(note_row['Patch Level']) if 'Patch Level' in notes_df.columns and pd.notna(note_row['Patch Level']) else None
         sp_level_component = None
-        note_number = note_row.get('Note Number')
-
+        
         for _, component_row in components_df.iterrows():
-            sp_level = component_row.get('SPLevel', None)
-
-            if patch_level_note is None or (sp_level is not None and isinstance(patch_level_note, (int, float)) and patch_level_note > sp_level):
-                found = True
-                impacted_components.append(component_row['Component'])
-                sp_level_component = sp_level
-
+            if check_release_and_patch(component_row, note_row):
+                sp_level = extract_sp_level(component_row['SPLevel']) if 'SPLevel' in components_df.columns and pd.notna(component_row['SPLevel']) else None
+                
+                print(f"📌 Controllo componente: {component_row['Component']} | SPLevel: {sp_level}")
+                
+                if patch_level is None:
+                    found = True
+                    impacted_components.append(component_row['Component'])
+                    sp_level_component = sp_level
+                elif sp_level is not None and patch_level > sp_level:
+                    found = True
+                    impacted_components.append(component_row['Component'])
+                    sp_level_component = sp_level
+        
         if found:
             note_row_idx = index + 2  
             note_cell = ws[f"A{note_row_idx}"]  
+            
+            for merged_range in ws.merged_cells.ranges:
+                if note_cell.coordinate in merged_range:
+                    note_cell = ws[merged_range.start_cell.coordinate]
+                    break
+            
             note_cell.fill = red_fill
             print(f"🔴 Impattato: {note_cell.coordinate} colorato di rosso")
-
+            
             ws_red_notes.append([
                 note_cell.value,
-                ", ".join(set(impacted_components)),
-                software_component,
-                note_row.get('From'),
-                note_row.get('To'),
-                patch_level_note,
+                ", ".join(impacted_components),
+                note_row['From'],
+                note_row['To'],
+                patch_level if 'Patch Level' in notes_df.columns else None,
                 sp_level_component
             ])
-
+    
     wb.save(output_filename)
+    clean_impacted_notes(ws_red_notes)
     wb_red_notes.save(red_notes_filename)
-    print(f"✅ File aggiornato e salvato: {output_filename} e {red_notes_filename}")
+    print(f"✅ Salvataggio completato: {output_filename} e {red_notes_filename}")
 
-# === Sezione 2: Eliminazione delle Note Duplicate ===
-def delete_duplicate_notes(file_path="Impacted_Notes.xlsx"):
-    if not os.path.exists(file_path):
-        print("❌ Errore: Il file Impacted_Notes.xlsx non esiste.")
-        return
-
-    wb = load_workbook(file_path)
-    ws = wb.active
-
-    # Trova la colonna della "Note Number"
-    note_number_col = None
-    for col in range(1, ws.max_column + 1):
-        if ws.cell(row=1, column=col).value == "Note Number":
-            note_number_col = col
-            break
-
-    if note_number_col:
-        previous_note = None
-        for row in range(2, ws.max_row + 1):
-            current_note = ws.cell(row=row, column=note_number_col).value
-
-            if current_note == previous_note:
-                ws.cell(row=row, column=note_number_col, value="")  # Svuota la cella duplicata
-            else:
-                previous_note = current_note
-
-    updated_file_path = "Impacted_Notes_Cleaned.xlsx"
-    wb.save(updated_file_path)
-    print(f"✅ File pulito salvato come: {updated_file_path}")
-
-# === Sezione 3: Unione Celle delle Note Duplicate ===
-def merge_duplicate_notes(file_path="Impacted_Notes_Cleaned.xlsx"):
-    if not os.path.exists(file_path):
-        print("❌ Errore: Il file Impacted_Notes_Cleaned.xlsx non esiste.")
-        return
-
-    wb = load_workbook(file_path)
-    ws = wb.active
-
-    # Trova la colonna della "Note Number"
-    note_number_col = None
-    for col in range(1, ws.max_column + 1):
-        if ws.cell(row=1, column=col).value == "Note Number":
-            note_number_col = col
-            break
-
-    if note_number_col:
-        previous_note = None
-        start_row = None
-        note_values = []
-
-        for row in range(2, ws.max_row + 1):
-            current_note = ws.cell(row=row, column=note_number_col).value
-
-            if current_note and current_note == previous_note:
-                if start_row is None:
-                    start_row = row - 1
-                note_values.append(current_note)
-            else:
-                if start_row is not None and start_row < row - 1:
-                    merged_value = ", ".join(set(note_values))
-                    ws.cell(row=start_row + 1, column=note_number_col, value=merged_value)
-                    ws.merge_cells(start_row=start_row + 1, start_column=note_number_col, end_row=row - 1, end_column=note_number_col)
-                start_row = None
-                note_values = [current_note] if current_note else []
-
-            previous_note = current_note
-
-        if start_row is not None and start_row < ws.max_row:
-            merged_value = ", ".join(set(note_values))
-            ws.cell(row=start_row + 1, column=note_number_col, value=merged_value)
-            ws.merge_cells(start_row=start_row + 1, start_column=note_number_col, end_row=ws.max_row, end_column=note_number_col)
-
-    updated_file_path = "Impacted_Notes_Merged.xlsx"
-    wb.save(updated_file_path)
-    print(f"✅ File con celle unite salvato come: {updated_file_path}")
-
-# === Esecuzione delle Funzioni ===
-if __name__ == "__main__":
-    components_df = pd.read_excel("Components.xlsx")
-    notes_df = pd.read_excel("Note Extraction.xlsx")
-
-    apply_color_to_note_number(components_df, notes_df)
-    delete_duplicate_notes()
-    merge_duplicate_notes()
+components_file = filedialog.askopenfilename(title="Seleziona il file Components.xlsx", filetypes=[("Excel files", "*.xlsx")])
+components_df = pd.read_excel(components_file)
+notes_file = filedialog.askopenfilename(title="Seleziona il file Note Extraction.xlsx", filetypes=[("Excel files", "*.xlsx")])
+notes_df = pd.read_excel(notes_file)
+apply_color_to_note_number(components_df, notes_df, notes_file)
