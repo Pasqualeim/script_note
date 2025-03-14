@@ -146,7 +146,7 @@ def apply_color_to_note_number(components_df, notes_df, notes_file):
     wb_red_notes.save(red_notes_filename)
     print(f"✅ Salvataggio completato: {output_filename} e {red_notes_filename}")
 
-components_file = filedialog.askopenfilename(title="Seleziona il file Components.xlsx", filetypes=[("Excel files", "*.xlsx")])
+components_file = filedialog.askopenfilename(title="Seleziona il file delle componenti", filetypes=[("Excel files", "*.xlsx")])
 components_df = pd.read_excel(components_file)
 notes_file = filedialog.askopenfilename(title="Seleziona il file Note Extraction.xlsx", filetypes=[("Excel files", "*.xlsx")])
 notes_df = pd.read_excel(notes_file)
