@@ -41,7 +41,7 @@ def apply_color_to_note_number(components_df, notes_df, notes_file):
             if check_release_and_patch(component_row, note_row):
                 sp_level = extract_sp_level(component_row['SPLevel']) if 'SPLevel' in components_df.columns and pd.notna(component_row['SPLevel']) else None
                 
-                print(f"📌 Controllo componente: {component_row['Component']} | SPLevel: {sp_level}")
+                print(f"Controllo componente: {component_row['Component']} | SPLevel: {sp_level}")
                 
                 if patch_level is None:
                     found = True
@@ -62,7 +62,7 @@ def apply_color_to_note_number(components_df, notes_df, notes_file):
                     break
             
             note_cell.fill = red_fill
-            print(f"🔴 Impattato: {note_cell.coordinate} colorato di rosso")
+            print(f"Impattato: {note_cell.coordinate} colorato di rosso")
             
             ws_red_notes.append([
                 note_cell.value,
@@ -81,12 +81,12 @@ def apply_color_to_note_number(components_df, notes_df, notes_file):
 def main():
     components_file = select_file_component("Seleziona il file delle componenti.")
     if not components_file:
-        print("❌ Nessun file selezionato per le componenti.")
+        print("Nessun file selezionato per le componenti.")
         return
 
     notes_file = select_file_notes("Seleziona il file Note Extraction.xlsx")
     if not notes_file:
-        print("❌ Nessun file selezionato per le note.")
+        print("Nessun file selezionato per le note.")
         return
 
     components_df = pd.read_excel(components_file)
