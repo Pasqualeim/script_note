@@ -6,6 +6,14 @@ import tkinter as tk
 from tkinter import filedialog
 
 import sys
+import os
+# Forza l'uso di UTF-8 su Windows
+os.system("chcp 65001 > nul")  # Imposta la console di Windows su UTF-8
+# Imposta stdout per non essere bufferizzato (stampa in tempo reale)
+sys.stdout.reconfigure(encoding="utf-8", line_buffering=True)
+
+
+import sys
 sys.path.append("/Users/pasqualeercolino/Documents/Developer/script_note/")  # Modifica con il tuo percorso
 
 from def_mac import select_save_location, extract_sp_level, check_release_and_patch, clean_impacted_notes, convert_version_format, select_file_component, select_file_notes
