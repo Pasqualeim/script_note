@@ -55,13 +55,8 @@ Dopo aver installato Python, è necessario installare i pacchetti richiesti.
 ## 🚀 COME ESEGUIRE IL PROGRAMMA
 Una volta installati **Python** e le librerie richieste, puoi avviare il programma.
 
-### 🔹 Opzione 1: Eseguire il programma con GUI
-1. Apri la cartella contenente il file `GUI.py`.
-2. **Doppio clic su `GUI.py`** per avviare l'interfaccia grafica.
-3. Premi il tasto `Esegui Confronto` per iniziare il processo.
-
-### 🔹 Opzione 2: Eseguire il programma dal terminale
-Se preferisci lanciare il programma manualmente:
+### 🔹 Eseguire il programma dal terminale
+Lancia il programma manualmente:
 1. Apri il **Prompt dei comandi**.
 2. Vai nella cartella del programma:
    ```cmd
