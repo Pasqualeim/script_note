@@ -1,151 +1,136 @@
-# 📌 Tool Security Notes - README
+# 📌 TOOL SECURITY NOTES - README
 
-## 📚 Descrizione
+## 📖 Descrizione
+Questo tool permette di **comparare e analizzare file Excel**, verificando le corrispondenze tra componenti e note estratte, applicando colori per evidenziare le note impattate e generando un file contenente solo queste ultime.  
 
-Questo script Python permette di **generare, comparare e analizzare due file Excel**, verificando le corrispondenze tra componenti e note estratte, applicando colori per evidenziare le note impattate e creando un file con sole queste ultime. Inoltre, pulisce la colonna **"Note Number"** dai duplicati prima di salvare il file finale.
-
-Lo script utilizza **Pandas** per l'elaborazione dei dati e **OpenPyXL** per la manipolazione diretta dei file Excel.  
-**L'interfaccia grafica (GUI) sviluppata in PyQt6 permette un'esperienza utente semplificata con selezione file, stato di avanzamento e output in tempo reale.**
+Il programma è dotato di una **interfaccia grafica (GUI)** che permette di avviare il processo senza dover utilizzare la riga di comando.
 
 ---
 
-## 🛠️ Funzionalità principali
+## 🛠️ REQUISITI DI SISTEMA
+Per eseguire il programma, **è necessario installare Python** e alcune librerie aggiuntive.
 
-- **Interfaccia Grafica (GUI) con PyQt6**: Possibilità di avviare il confronto da un'applicazione grafica.
-- **Selezione manuale dei file**: L'utente può scegliere i file Excel da comparare.
-- **Applicazione di colori**: Le note impattate vengono colorate di **rosso**.
-- **Pulizia della colonna "Note Number"**: I valori duplicati consecutivi vengono rimossi automaticamente.
-- **Salvataggio dei risultati**: I file finali vengono salvati in una posizione scelta dall'utente.
-- **Output in tempo reale**: L'output del terminale viene mostrato direttamente nella GUI.
-- **Barra di avanzamento**: Indica lo stato di avanzamento del confronto.
+### 1️⃣ Installare Python (se non è installato)
+Se Python **non è installato**, segui questi passaggi:
+
+#### 🔹 Metodo 1: Installazione Automatica (Consigliato)
+1. Apri il **Prompt dei comandi** (su Windows: premi `Win + R`, scrivi `cmd` e premi Invio).
+2. Digita il seguente comando e premi Invio:
+   ```cmd
+   winget install -e --id Python.Python.3
+   ```
+3. **Riavvia il PC** dopo l'installazione.
+
+#### 🔹 Metodo 2: Installazione Manuale
+1. Scarica l'installer di Python da qui:  
+   👉 [https://www.python.org/downloads/windows/](https://www.python.org/downloads/windows/)
+2. Avvia il file `.exe` scaricato.
+3. **IMPORTANTE**: **Seleziona "Add Python to PATH"** prima di cliccare "Install Now".
+4. Attendi il completamento dell'installazione.
+5. Apri il **Prompt dei comandi** e verifica l'installazione con:
+   ```cmd
+   python --version
+   ```
+
+Se tutto è corretto, vedrai una versione come questa:
+```
+Python 3.12.0
+```
 
 ---
 
-## 📂 File generati
+### 2️⃣ Installare le librerie necessarie
+Dopo aver installato Python, è necessario installare i pacchetti richiesti.
+
+1. Apri il **Prompt dei comandi**.
+2. Digita e premi Invio:
+   ```cmd
+   pip install pandas openpyxl pyqt6
+   ```
+
+✅ Ora puoi eseguire il programma.
+
+---
+
+## 🚀 COME ESEGUIRE IL PROGRAMMA
+Una volta installati **Python** e le librerie richieste, puoi avviare il programma.
+
+### 🔹 Opzione 1: Eseguire il programma con GUI
+1. Apri la cartella contenente il file `GUI.py`.
+2. **Doppio clic su `GUI.py`** per avviare l'interfaccia grafica.
+3. Premi il tasto `Esegui Confronto` per iniziare il processo.
+
+### 🔹 Opzione 2: Eseguire il programma dal terminale
+Se preferisci lanciare il programma manualmente:
+1. Apri il **Prompt dei comandi**.
+2. Vai nella cartella del programma:
+   ```cmd
+   cd "C:\Users\TuoNomeUtente\Documents\Script_pyton\script_note"
+   ```
+3. Avvia il programma con:
+   ```cmd
+   python GUI.py
+   ```
+
+---
+
+## 📂 FILE GENERATI
+Dopo l'esecuzione, il programma genera i seguenti file:
 
 - **`Note Extraction Updated.xlsx`** → File aggiornato con i colori applicati.
 - **`Impacted_Notes.xlsx`** → File contenente solo le note impattate, già pulito dai duplicati.
 
----
-
-## 📂 Origine del file delle note impattate (Impacted_Notes.xlsx)
-
-1. 📂 Il file si troverà nel seguente percorso in cartelle suddivise per trimestri o mensilitá (in base alle esigenze dei clienti):
-
-   ```
-   ...EY\REMOTE-SERVICES - Documents\Remote\CLIENTI\Security Notes\Note 2025
-   ```
-
-2. 📂 Attualmente viene generato da uno script (ongoing) situato in:
-
-   ```
-   ...EY\REMOTE-SERVICES - Documents\Remote\CLIENTI\Security Notes\script_python
-   ```
+I file verranno salvati nella posizione scelta durante l'esecuzione.
 
 ---
 
-## 🏠 Requisiti
+## 📂 ORIGINE DEL FILE DELLE NOTE IMPATTATE
+Il file delle note impattate si trova in:
 
-Assicurati di avere installate le seguenti librerie Python prima di eseguire lo script:
-
-```
-pip install pandas openpyxl pyqt6
+📂 **Percorso file diviso per trimestri/mensilità:**
+```bash
+...EY\REMOTE-SERVICES - Documents\Remote\CLIENTI\Security Notes\Note 2025
 ```
 
-### **Struttura del file delle componenti**
-
-Deve contenere solo tre colonne:
-- **Component**
-- **Release**
-- **SPLevel**
-
-Per il Kernel, la colonna `Component` deve avere una delle seguenti nomenclature:
-
-- `KERNEL`
-- `KRNL64UC`
-- `KRNLUC`
+📂 **Attualmente generato da uno script in:**
+```bash
+...EY\REMOTE-SERVICES - Documents\Remote\CLIENTI\Security Notes\script_python
+```
 
 ---
 
-## 🚀 Come utilizzare lo script
-
-### **Opzione 1: Avvio tramite GUI**
-1. **Esegui la GUI** dalla cartella in cui è presente:
-   ```
-   python GUI.py
-   ```
-2. **Nell'interfaccia grafica**:
-   - Clicca su **"Esegui Confronto"** per avviare il processo.
-   - Visualizza **l'output in tempo reale** nella finestra.
-   - Osserva **la barra di avanzamento** mentre il confronto viene elaborato.
-   - Una volta terminato, i file verranno salvati nella posizione scelta.
+## 📌 STRUTTURA DEL CODICE
+### 🔹 Principali funzioni
+- **`select_file(prompt)`** → Mostra una finestra per selezionare i file di input.
+- **`select_save_location(default_name)`** → Permette di scegliere dove salvare i file.
+- **`apply_color_to_note_number(components_df, notes_df, notes_file)`** → Confronta i dati e applica le modifiche.
+- **`clean_impacted_notes(ws_red_notes)`** → Pulisce i duplicati dalla colonna "Note Number".
+- **`run_comparison()`** → Avvia il processo e mostra l'avanzamento nella GUI.
 
 ---
 
-### **Opzione 2: Avvio da Terminale**
-1. **Esegui il file Python** manualmente:
-   ```
-   python merge_and_clean_notes.py
-   ```
-
-2. **Seleziona i file**:
-   - **Componenti** → Contiene le componenti del sistema.
-   - **Note Extraction.xlsx** → Contiene le note estratte.
-
-3. **Seleziona la posizione per salvare i file di output**.
-
-4. **Lo script analizzerà i dati e genererà i file aggiornati**:
-   - Colorando le note impattate.
-   - Eliminando i duplicati dalla colonna "Note Number".
-
-5. **Controlla i file generati** e utilizzali per ulteriori analisi.
-
----
-
-## 📈 Struttura del codice
-
-- **`select_file(prompt)`**: Mostra una finestra di dialogo per selezionare i file di input.
-- **`select_save_location(default_name)`**: Mostra una finestra di dialogo per scegliere dove salvare i file.
-- **`convert_version_format(version)`**: Converte le versioni in formato numerico.
-- **`extract_sp_level(sp_value)`**: Estrae il valore numerico della colonna SP-Level.
-- **`check_release_and_patch(component_row, note_row)`**: Verifica se il componente rientra nei range di versione.
-- **`clean_impacted_notes(ws_red_notes)`**: Rimuove i duplicati consecutivi dalla colonna "Note Number".
-- **`apply_color_to_note_number(components_df, notes_df, notes_file)`**:
-  - Analizza i dati, applica i colori alle note impattate.
-  - Pulisce la colonna "Note Number".
-  - Salva i file aggiornati.
-- **`GUI.py`**:
-  - Esegue il confronto attraverso un'interfaccia grafica con barra di avanzamento e output in tempo reale.
-
----
-
-## 🔄 Esempio di utilizzo
-
+## 🔄 ESEMPIO DI UTILIZZO
 ```
 📌 Controllo componente: SEM-BW | SPLevel: 21
 🔴 Impattato: A1448 colorato di rosso
 📌 Controllo componente: SAP_BW | SPLevel: 22
 🔴 Impattato: A1494 colorato di rosso
-🚀 Salvataggio completato: C:/Users/DD917MJ/OneDrive - EY/Documents/Script_pyton/Note Extraction_Updated.xlsx e C:/Users/DD917MJ/OneDrive - EY/Documents/Script_pyton/Impacted_Notes.xlsx
+✅ Salvataggio completato: C:/Users/DD917MJ/OneDrive - EY/Documents/Script_pyton/Note Extraction_Updated.xlsx e C:/Users/DD917MJ/OneDrive - EY/Documents/Script_pyton/Impacted_Notes.xlsx
 ```
 
 ---
 
-## 🛠️ Possibili miglioramenti
-
+## 🛠️ POSSIBILI MIGLIORAMENTI
 - **Ottimizzazione della gestione della memoria** per file molto grandi.
-- **Miglioramento delle performance della GUI**.
-- **Aggiunta di una barra di avanzamento più dettagliata con step progressivi**.
+- **Aggiunta di un'interfaccia grafica (GUI)** più avanzata con selezione dei file.
 
 ---
 
-## 📚 Licenza
-
-Questo progetto è rilasciato sotto la **licenza MIT**. Puoi modificarlo e distribuirlo liberamente.
+## 📜 LICENZA
+Questo progetto è rilasciato sotto la licenza **MIT**. Puoi modificarlo e distribuirlo liberamente.
 
 ---
 
-## 📝 Contatti
-
-Per domande o suggerimenti, contattami su **GitHub!** 😊
+## 📧 CONTATTI
+Per domande o suggerimenti, **contattami su GitHub!** 😊
 
