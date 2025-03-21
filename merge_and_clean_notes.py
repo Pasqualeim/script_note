@@ -27,7 +27,7 @@ def apply_color_to_note_number(components_df, notes_df, notes_file):
     
     wb_red_notes = Workbook()
     ws_red_notes = wb_red_notes.active
-    ws_red_notes.append(["Note Number", "Impacted Component", "From", "To", "Patch Level", "SPLevel"])
+    ws_red_notes.append(["Note Number", "Impacted Component", "From", "To", "Patch Level"])
     
     red_fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
     
@@ -41,13 +41,9 @@ def apply_color_to_note_number(components_df, notes_df, notes_file):
             if check_release_and_patch(component_row, note_row):
                 sp_level = extract_sp_level(component_row['SPLevel']) if 'SPLevel' in components_df.columns and pd.notna(component_row['SPLevel']) else None
                 
-                print(f"Controllo componente: {component_row['Component']} | SPLevel: {sp_level}")
+                print(f"Controllo componente: {component_row['Component']} | Patch Level: {patch_level}")
                 
-                if patch_level is None:
-                    found = True
-                    impacted_components.append(component_row['Component'])
-                    sp_level_component = sp_level
-                elif sp_level is not None and patch_level > sp_level:
+                if patch_level is None or (sp_level is not None and patch_level > sp_level):
                     found = True
                     impacted_components.append(component_row['Component'])
                     sp_level_component = sp_level
@@ -69,7 +65,6 @@ def apply_color_to_note_number(components_df, notes_df, notes_file):
                 ", ".join(impacted_components),
                 note_row['From'],
                 note_row['To'],
-                patch_level if 'Patch Level' in notes_df.columns else None,
                 sp_level_component
             ])
     

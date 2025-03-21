@@ -48,14 +48,18 @@ def convert_version_format(version):
 
 def extract_sp_level(sp_value):
     """
-    Estrae il valore numerico da una stringa con prefisso 'SP'.
-    Esempio: 'SP007' -> 7
+    Estrae il valore numerico da una stringa con prefisso 'SP' o da un numero con zeri iniziali.
+    Esempio: 'SP007' -> 7, '0007' -> 7
     """
-    import re
     if pd.isna(sp_value):
         return None
-    match = re.search(r"SP(\d+)", str(sp_value))
-    return int(match.group(1)) if match else None
+    sp_value_str = str(sp_value).strip()
+    match = re.search(r"SP(\d+)", sp_value_str)
+    if match:
+        return int(match.group(1))
+    elif sp_value_str.isdigit():
+        return int(sp_value_str.lstrip("0")) if sp_value_str.lstrip("0") else 0
+    return None
 
 def check_release_and_patch(component_row, note_row):
     component = str(component_row['Component']).strip()
