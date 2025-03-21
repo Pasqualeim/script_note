@@ -48,29 +48,40 @@ def convert_version_format(version):
 
 def extract_sp_level(sp_value):
     """
-    Legge il valore numerico di SPLevel direttamente senza regex, poiché il formato è numerico.
+    Estrae il valore numerico da una stringa con prefisso 'SP'.
+    Esempio: 'SP007' -> 7
     """
-    try:
-        return int(sp_value) if pd.notna(sp_value) else None
-    except ValueError:
+    import re
+    if pd.isna(sp_value):
         return None
+    match = re.search(r"SP(\d+)", str(sp_value))
+    return int(match.group(1)) if match else None
 
 def check_release_and_patch(component_row, note_row):
     component = str(component_row['Component']).strip()
     release = component_row['Release']
     software_component = str(note_row['Software Component']).strip().lower() if pd.notna(note_row['Software Component']) else ""
+    software_component_version = note_row.get('Software Component Version', None)
     
     if component.lower() not in software_component.split(","):
         return False
     
     try:
-        from_version = convert_version_format(note_row['From'])
-        to_version = convert_version_format(note_row['To'])
-        release_version = convert_version_format(release) if pd.notna(release) else None
-        
-        if from_version is not None and to_version is not None and release_version is not None:
-            if from_version <= release_version <= to_version:
-                return True
+        if component in ["KRNL64UC", "KERNEL", "KRNL64NUC"]:
+            if pd.notna(software_component_version):
+                release_version = convert_version_format(release) if pd.notna(release) else None
+                component_version = convert_version_format(software_component_version)
+                if release_version is not None and component_version is not None:
+                    if release_version == component_version:
+                        return True
+        else:
+            from_version = convert_version_format(note_row['From'])
+            to_version = convert_version_format(note_row['To'])
+            release_version = convert_version_format(release) if pd.notna(release) else None
+            
+            if from_version is not None and to_version is not None and release_version is not None:
+                if from_version <= release_version <= to_version:
+                    return True
     except ValueError:
         return False
     
@@ -93,3 +104,6 @@ def clean_impacted_notes(ws_red_notes):
                     ws_red_notes.cell(row=row, column=note_number_col, value="")
                 else:
                     previous_note = current_note
+
+
+
